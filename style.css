@@ -1,16 +1,21 @@
-body {
+:root{
+  --bg: #000;
+  --white: #fff;
+}
+
+body{
   margin: 0;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  color: #333;
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--white);
 }
 
 .cover{
   position: relative;
   height: 100vh;
-  background: #000;
+  background: var(--bg);
   overflow: hidden;
-  perspective: 900px;            /* tạo cảm giác 3D */
+  perspective: 900px;
 }
 
 #hero-canvas{
@@ -31,33 +36,40 @@ body {
 }
 
 .hero-text .names{
-  color: #fff;
-  font-size: clamp(22px, 4.2vw, 46px);
-  font-weight: 700;
+  color: var(--white);
+  font-size: clamp(22px, 4.2vw, 48px);
+  font-weight: 800;
   letter-spacing: 0.6px;
+  text-align: center;
   transform-style: preserve-3d;
 
-  /* 3D “khối chữ” giả lập bằng nhiều lớp shadow (màu trắng) */
+  /* “Khối chữ” trắng: nhiều lớp shadow để nhìn dày + glow nhẹ */
   text-shadow:
     0 1px 0 rgba(255,255,255,0.35),
     0 2px 0 rgba(255,255,255,0.32),
-    0 3px 0 rgba(255,255,255,0.29),
-    0 4px 0 rgba(255,255,255,0.26),
-    0 5px 0 rgba(255,255,255,0.23),
-    0 6px 0 rgba(255,255,255,0.20),
-    0 10px 18px rgba(255,255,255,0.12),
-    0 0 14px rgba(255,255,255,0.18);
+    0 3px 0 rgba(255,255,255,0.28),
+    0 4px 0 rgba(255,255,255,0.24),
+    0 5px 0 rgba(255,255,255,0.20),
+    0 8px 18px rgba(255,255,255,0.12),
+    0 0 18px rgba(255,255,255,0.18);
 }
 
-.hero-text .sub{
-  margin-top: 10px;
-  font-size: clamp(14px, 2.2vw, 18px);
-  opacity: 0.75;
-}
-
-#music-btn {
+/* Nút nhạc */
+#music-btn{
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
   font-size: 22px;
+  border: 0;
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 12px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+#music-btn:active{
+  transform: scale(0.98);
 }
