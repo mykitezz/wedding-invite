@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: #333;
+}
+
+.cover {
+  height: 100vh;
+  background: #000;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#music-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-size: 22px;
+}
