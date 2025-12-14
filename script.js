@@ -88,7 +88,7 @@
     const t = (now - start) / 1000;
 
     // Gentle sway for the whole scene (this is your “dao động nhẹ qua lại”)
-    const swayY = Math.sin(t * 0.6) * 0.35;   // rotate around Y
+    const swayY = Math.sin(t * 0.6) * 0.55;   // rotate around Y
     const swayX = Math.sin(t * 0.45) * 0.18;  // rotate around X
 
     // Camera + projection params
@@ -110,7 +110,7 @@
       p = rotateX(p, swayX);
 
       // perspective projection
-      const depth = 80;              // camera distance
+      const depth = 70;              // camera distance
       const persp = depth / (depth - p.z);
       const px = cx + p.x * scale * persp;
       const py = cy + p.y * scale * persp;
