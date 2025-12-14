@@ -1,34 +1,29 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Thiệp Cưới | Dat & Thuy</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thiệp Cưới | Thành Đạt & Thanh Thúy</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<audio id="bg-music" loop>
-  <source src="music/wedding.mp3" type="audio/mpeg">
-</audio>
+  <!-- Nhạc nền (tuỳ bạn dùng hay không) -->
+  <audio id="bg-music" loop>
+    <source src="music/wedding.mp3" type="audio/mpeg">
+  </audio>
+  <button id="music-btn" aria-label="Toggle music">🎵</button>
 
-<button id="music-btn">🎵</button>
-
-<section class="cover">
+  <!-- HERO -->
+  <section class="cover">
     <canvas id="hero-canvas"></canvas>
+
+    <!-- Text overlay: sẽ được JS xoay cùng nhịp với trái tim -->
     <div class="hero-text" id="hero-text">
-    <div class="names">Thành Đạt &amp; Thanh Thúy</div>
-    <div class="sub">Save the date</div>
+      <div class="names">Thành Đạt &amp; Thanh Thúy</div>
     </div>
-</section>
+  </section>
 
-<section class="info">
-  <h2>Trân trọng kính mời</h2>
-  <p>Đến tham dự lễ thành hôn của chúng tôi</p>
-  <p><b>Thời gian:</b> 18:00 – 20.01.2026</p>
-  <p><b>Địa điểm:</b> Nhà hàng XYZ – Bảo Lộc</p>
-</section>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
