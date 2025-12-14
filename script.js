@@ -1,6 +1,7 @@
 // ===== 3D Heart Starfield (Canvas) =====
 (() => {
   const canvas = document.getElementById("hero-canvas");
+  const heroText = document.getElementById("hero-text");
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d", { alpha: true });
@@ -90,9 +91,15 @@
     // Gentle sway for the whole scene (this is your “dao động nhẹ qua lại”)
     const swayY = Math.sin(t * 0.6) * 0.55;   // rotate around Y
     const swayX = Math.sin(t * 0.45) * 0.18;  // rotate around X
-
+    // Xoay chữ cùng nhịp với trái tim (CSS 3D)
+    if (heroText) {
+    const degY = swayY * 38; // hệ số đổi sang độ (tùy chỉnh)
+    const degX = -swayX * 38;
+    heroText.style.transform =
+    `translateZ(0) rotateY(${degY}deg) rotateX(${degX}deg)`;
+    }
     // Camera + projection params
-    const scale = Math.min(w, h) * 0.035;
+    const scale = Math.min(w, h) * 0.022;
     const cx = w / 2;
     const cy = h / 2;
 
