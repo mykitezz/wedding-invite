@@ -1,127 +1,96 @@
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d", { alpha: true });
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
-window.addEventListener("resize", resize);
+addEventListener("resize", resize);
 resize();
 
-function insideHeart(x, y) {
+/* Heart implicit: (x^2+y^2-1)^3 - x^2*y^3 <= 0 */
+function insideHeart(x, y){
   const a = x*x + y*y - 1;
   return (a*a*a - x*x*y*y*y) <= 0;
 }
+const rand = (a,b)=>a+Math.random()*(b-a);
+const clamp01 = (v)=>Math.max(0, Math.min(1, v));
 
 const NAMES = "Thành Đạt & Thanh Thúy";
 
-// ====== TUNING (liền khối) ======
-const FILL_COUNT = 4200;     // tăng nhẹ fill để “liền ruột”
-const EDGE_COUNT = 900;      // giảm edge để không thành “vòng”
-const BASE_SCALE = 0.235;
+// ===== LOOK TUNING =====
+const COUNT = 5200;          // ít nhưng vẫn đủ rõ (không bệt)
+const DEPTH = 0.55;          // “độ dày” tim (0..1)
+const BASE_SCALE = 0.235;    // size tim
+const SWAY = 0.10;           // lắc ngang nhẹ
+const PULSE = 0.015;         // nhịp thở
+const DRIFT = 0.006;         // drift rất nhỏ
+const TWINKLE = 0.45;        // nhấp nháy mềm
+const STAR_CHANCE = 0.08;    // ít “tia sao” để sang
 
-const SWAY = 0.11;
-const PULSE = 0.016;
-const DRIFT = 0.007;
+// vignette nền nhẹ để có chiều sâu
+const VIGNETTE = 0.11;
 
-const TWINKLE = 0.48;        // mềm hơn
-const STAR_CHANCE = 0.09;
-
-const VIGNETTE = 0.12;       // giảm vignette để không tách nền
-const EDGE_BOOST = 0.10;     // edge chỉ nhỉnh hơn nhẹ
-const EDGE_BLUR = 6;
-const FILL_BLUR = 5;
-
-function rand(a, b) { return a + Math.random() * (b - a); }
-function clamp01(v) { return Math.max(0, Math.min(1, v)); }
-
+// ===== Build 3D-ish particles (x,y,z) =====
 const pts = [];
-function makePoint(x, y, edge) {
-  return {
-    x, y, edge,
-    r: edge ? rand(0.85, 1.65) : rand(0.75, 1.45),
-    phase: rand(0, Math.PI * 2),
-    speed: rand(0.75, 1.55),
-    dx: rand(-1, 1),
-    dy: rand(-1, 1),
-    // base gần nhau để “liền” (không tách lớp)
-    base: edge ? rand(0.26, 0.40) : rand(0.22, 0.36),
-  };
-}
 
-function build() {
+function build(){
   pts.length = 0;
 
   const xmin = -1.35, xmax = 1.35;
   const ymin = -1.35, ymax = 1.35;
 
-  // 1) FILL: phân bố đều hơn (giảm bias về biên)
-  for (let i = 0; i < FILL_COUNT; i++) {
-    let x, y;
+  for (let i=0;i<COUNT;i++){
+    let x,y;
     do {
       x = rand(xmin, xmax);
       y = rand(ymin, ymax);
-    } while (!insideHeart(x, y));
+    } while(!insideHeart(x,y));
 
-    // thay vì kéo về biên -> kéo “nhẹ” để vẫn có ruột
-    // k lớn => gần biên hơn, nhưng vẫn giữ nhiều điểm ở giữa
-    const k = Math.pow(Math.random(), 1.05); // gần 1 => phân bố đều hơn
-    x *= 0.80 + 0.20 * k;
-    y *= 0.80 + 0.20 * k;
+    // phân bố đẹp: vừa có ruột vừa có khoảng đen
+    const k = Math.pow(Math.random(), 0.95); // gần 1 -> đều
+    x *= 0.82 + 0.18 * k;
+    y *= 0.82 + 0.18 * k;
 
-    pts.push(makePoint(x, y, false));
-  }
+    // z depth: bias nhiều điểm gần giữa để “liền khối”
+    const z = (Math.random()*2 - 1) * DEPTH * (0.55 + Math.random()*0.45);
 
-  // 2) EDGE: ít hơn và mượt hơn, không thành “vòng”
-  const eps = 0.030;
-  let count = 0, guard = 0;
-  while (count < EDGE_COUNT && guard < EDGE_COUNT * 110) {
-    guard++;
-    let x = rand(xmin, xmax);
-    let y = rand(ymin, ymax);
-    if (!insideHeart(x, y)) continue;
-
-    const nearEdge = !(
-      insideHeart(x + eps, y) &&
-      insideHeart(x - eps, y) &&
-      insideHeart(x, y + eps) &&
-      insideHeart(x, y - eps)
-    );
-    if (!nearEdge) continue;
-
-    // jitter nhỏ để biên mềm
-    x += rand(-0.012, 0.012);
-    y += rand(-0.012, 0.012);
-
-    pts.push(makePoint(x, y, true));
-    count++;
+    pts.push({
+      x,y,z,
+      r: rand(0.75, 1.55),
+      phase: rand(0, Math.PI*2),
+      speed: rand(0.75, 1.55),
+      base: rand(0.18, 0.34),
+      dx: rand(-1,1),
+      dy: rand(-1,1),
+    });
   }
 }
-
 build();
 
-function swayHoriz(x, y, a) {
-  return { x: x + (y * 0.52) * Math.sin(a), y };
+// shear ngang (không xoay chéo)
+function swayHoriz(x, y, a){
+  return { x: x + (y*0.52) * Math.sin(a), y };
 }
 
-function drawStar(px, py, r, alpha) {
+function drawStar(px, py, r, alpha){
+  // core
   ctx.beginPath();
-  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.arc(px, py, r, 0, Math.PI*2);
   ctx.fillStyle = `rgba(255,255,255,${alpha})`;
   ctx.fill();
 
+  // soft rays
   const ray = r * 2.0;
-  ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.45})`;
+  ctx.strokeStyle = `rgba(255,255,255,${alpha*0.35})`;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(px - ray, py);
-  ctx.lineTo(px + ray, py);
-  ctx.moveTo(px, py - ray);
-  ctx.lineTo(px, py + ray);
+  ctx.moveTo(px-ray, py); ctx.lineTo(px+ray, py);
+  ctx.moveTo(px, py-ray); ctx.lineTo(px, py+ray);
   ctx.stroke();
 }
 
-function roundRect(x, y, w, h, r) {
+function roundRect(x, y, w, h, r){
   const rr = Math.min(r, w/2, h/2);
   ctx.beginPath();
   ctx.moveTo(x+rr, y);
@@ -132,35 +101,49 @@ function roundRect(x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawText(cx, cy, shear, scalePx) {
+function drawText(cx, cy, shear, scalePx){
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.transform(1, 0, Math.sin(shear) * 0.20, 1, 0, 0);
 
-  const fontSize = Math.max(18, Math.min(46, scalePx * 0.22));
+  // shear ngang đồng bộ với tim
+  ctx.transform(1, 0, Math.sin(shear)*0.18, 1, 0, 0);
+
+  // vị trí chữ: 1/3 từ trên xuống trong tim
+  // (tim center ở cy, nên kéo lên một đoạn)
+  const yOffset = -scalePx * 0.18;
+  ctx.translate(0, yOffset);
+
+  const fontSize = Math.max(18, Math.min(50, scalePx * 0.23));
   ctx.font = `900 ${fontSize}px system-ui, -apple-system, Segoe UI, Arial`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  // ✅ nền chữ “mỏng” hơn để không tách khối
-  const padX = fontSize * 0.55;
-  const padY = fontSize * 0.45;
-  const metrics = ctx.measureText(NAMES);
-  const w = metrics.width + padX;
-  const h = fontSize + padY;
+  // nền “glass” mỏng, không tách khối
+  const padX = fontSize * 0.70;
+  const padY = fontSize * 0.55;
+  const textW = ctx.measureText(NAMES).width + padX;
+  const textH = fontSize + padY;
 
-  ctx.fillStyle = "rgba(0,0,0,0.16)";
-  roundRect(-w/2, -h/2, w, h, h/2);
+  // glass plate
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
+  roundRect(-textW/2, -textH/2, textW, textH, textH/2);
   ctx.fill();
 
-  // extrude nhẹ
-  for (let i = 6; i >= 1; i--) {
-    ctx.fillStyle = `rgba(255,255,255,${0.045 + i * 0.016})`;
-    ctx.fillText(NAMES, i * 0.5, -i * 0.22);
+  // highlight viền glass nhẹ
+  ctx.strokeStyle = "rgba(255,255,255,0.10)";
+  ctx.lineWidth = 1;
+  roundRect(-textW/2, -textH/2, textW, textH, textH/2);
+  ctx.stroke();
+
+  // extrude 3D-ish
+  for (let i=8;i>=1;i--){
+    ctx.fillStyle = `rgba(255,255,255,${0.045 + i*0.016})`;
+    ctx.fillText(NAMES, i*0.55, -i*0.25);
   }
 
-  ctx.shadowColor = "rgba(255,255,255,0.18)";
-  ctx.shadowBlur = 12;
+  // main
+  ctx.shadowColor = "rgba(255,255,255,0.25)";
+  ctx.shadowBlur = 18;
   ctx.fillStyle = "rgba(255,255,255,0.98)";
   ctx.fillText(NAMES, 0, 0);
 
@@ -169,59 +152,70 @@ function drawText(cx, cy, shear, scalePx) {
 
 let t0 = performance.now();
 
-function tick(now) {
+function frame(now){
   const t = (now - t0) / 1000;
   const w = canvas.width, h = canvas.height;
 
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0,0,w,h);
 
-  const cx = w / 2;
-  const cy = h / 2;
-  const scalePx = Math.min(w, h) * BASE_SCALE;
+  const cx = w/2, cy = h/2;
+  const scalePx = Math.min(w,h) * BASE_SCALE;
 
-  const shear = Math.sin(t * 0.55) * SWAY;
-  const bob = Math.sin(t * 0.85) * 4;
-  const pulse = 1 + Math.sin(t * 1.05) * PULSE;
+  const shear = Math.sin(t*0.55) * SWAY;
+  const bob = Math.sin(t*0.85) * 3.6;
+  const pulse = 1 + Math.sin(t*1.05) * PULSE;
 
-  // vignette nhẹ (ít tách nền)
-  const vg = ctx.createRadialGradient(cx, cy, 40, cx, cy, Math.max(w, h) * 0.70);
+  // vignette
+  const vg = ctx.createRadialGradient(cx, cy, 40, cx, cy, Math.max(w,h)*0.70);
   vg.addColorStop(0, `rgba(255,255,255,${VIGNETTE})`);
   vg.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillRect(0,0,w,h);
 
-  for (const p of pts) {
+  // sort by z (far -> near) để có cảm giác depth
+  pts.sort((a,b)=>a.z-b.z);
+
+  for (const p of pts){
     const sp = swayHoriz(p.x, p.y, shear);
 
-    const driftX = Math.sin(t * 0.7 + p.phase) * DRIFT * p.dx;
-    const driftY = Math.cos(t * 0.7 + p.phase) * DRIFT * p.dy;
+    // micro drift
+    const driftX = Math.sin(t*0.7 + p.phase) * DRIFT * p.dx;
+    const driftY = Math.cos(t*0.7 + p.phase) * DRIFT * p.dy;
 
-    const px = cx + (sp.x + driftX) * scalePx * pulse;
-    const py = (cy + bob) - (sp.y + driftY) * scalePx * pulse;
+    // pseudo perspective theo z: gần -> to + sáng
+    const zf = 1 + p.z * 0.55;
 
-    const tw0 = (Math.sin(t * p.speed + p.phase) + 1) / 2;
+    const px = cx + (sp.x + driftX) * scalePx * pulse * zf;
+    const py = (cy + bob) - (sp.y + driftY) * scalePx * pulse * zf;
+
+    const tw0 = (Math.sin(t*p.speed + p.phase) + 1) / 2;
     const tw = Math.pow(tw0, 1.18);
 
-    // edge chỉ nhỉnh hơn nhẹ để “liền khối”
-    let alpha = p.base + tw * TWINKLE + (p.edge ? EDGE_BOOST : 0);
+    // alpha: base + twinkle, thêm depthLight theo z
+    const depthLight = 0.55 + (p.z + DEPTH) / (2*DEPTH) * 0.45; // 0.55..1
+    let alpha = (p.base + tw * TWINKLE) * depthLight;
     alpha = clamp01(alpha);
 
-    ctx.shadowColor = "rgba(255,255,255,0.16)";
-    ctx.shadowBlur = p.edge ? EDGE_BLUR : FILL_BLUR;
+    // radius: theo z
+    const rr = p.r * zf;
 
-    if (tw > (1 - STAR_CHANCE * (p.edge ? 1.2 : 1.0))) {
-      drawStar(px, py, p.r * 0.95, alpha);
+    // glow mềm (không chói)
+    ctx.shadowColor = "rgba(255,255,255,0.16)";
+    ctx.shadowBlur = 6 * zf;
+
+    if (tw > (1 - STAR_CHANCE)){
+      drawStar(px, py, rr * 0.95, alpha);
     } else {
       ctx.beginPath();
       ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-      ctx.arc(px, py, p.r, 0, Math.PI * 2);
+      ctx.arc(px, py, rr, 0, Math.PI*2);
       ctx.fill();
     }
   }
 
-  drawText(cx, cy + bob * 0.25, shear, scalePx);
+  // chữ tại 1/3, nổi bật
+  drawText(cx, cy + bob*0.25, shear, scalePx);
 
-  requestAnimationFrame(tick);
+  requestAnimationFrame(frame);
 }
-
-requestAnimationFrame(tick);
+requestAnimationFrame(frame);
