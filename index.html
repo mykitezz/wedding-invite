@@ -1,29 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Thiệp Cưới | Thành Đạt & Thanh Thúy</title>
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Import map để chạy Three.js trên GitHub Pages (không cần build) -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="stage">
-    <canvas id="webgl"></canvas>
 
-    <!-- Chữ nằm trong tim, sẽ lắc/xoay đồng bộ (3D-ish bằng CSS) -->
-    <div id="title3d">Thành Đạt &amp; Thanh Thúy</div>
-  </div>
+<canvas id="c"></canvas>
 
-  <script type="module" src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
