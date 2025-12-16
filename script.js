@@ -107,4 +107,15 @@ function draw(now) {
 
     ctx.beginPath();
     ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-    ctx.arc(px,
+    ctx.arc(px, py, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /* ==== TEXT INSIDE HEART ==== */
+  drawText(cx, cy + bob * 0.4, sway, BASE_SCALE);
+
+  requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);
