@@ -86,7 +86,7 @@ function build(){
       // ✅ Gradient mật độ: gần biên dễ được giữ hơn
       // trong sâu: keep ~ 0.25..0.45
       // sát biên:  keep ~ 0.75..0.95
-      const keepProb = 0.22 + 0.74 * Math.pow(ef, 0.65);
+      const keepProb = 0.22 + 0.99 * Math.pow(ef, 0.65);
 
       if (Math.random() > keepProb) continue;
 
